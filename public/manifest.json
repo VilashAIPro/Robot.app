@@ -1,0 +1,17 @@
+{
+  "short_name": "AgriNet AI",
+  "name": "ROV-BOT AI Agriculture Network",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#090d16",
+  "theme_color": "#16a34a",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "description": "AI-powered Digital Agriculture Platform for India with Autonomous Farming Robot Management."
+}

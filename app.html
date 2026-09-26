@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ROV-BOT + AgriNet AI | AI Powered Autonomous Precision Farming Network</title>
+  <meta name="description" content="India's First AI Powered Autonomous Precision Farming Network & Digital Public Infrastructure for Small and Marginal Farmers. Hall of Community Hackathon 2.0." />
+  <link rel="icon" type="image/svg+xml" href="public/logo.svg" />
+  
+  <!-- Google Fonts: Poppins (Heading), Inter (Body), Space Grotesk (Numbers), JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#2E7D32',
+              lightGreen: '#66BB6A',
+              yellow: '#F9A825',
+              earth: '#795548',
+              sky: '#42A5F5',
+              danger: '#D32F2F',
+              forest: '#04150c',
+              darkCard: 'rgba(10, 26, 17, 0.85)',
+              lightBg: '#F8FFF5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            heading: ['Poppins', 'Outfit', 'sans-serif'],
+            numbers: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          animation: {
+            'spin-slow': 'spin 12s linear infinite',
+            'float': 'float 5s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+            'scan': 'scanLine 2.5s ease-in-out infinite'
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' }
+            },
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 15px rgba(102, 187, 106, 0.4)' },
+              '50%': { boxShadow: '0 0 35px rgba(102, 187, 106, 0.8)' }
+            },
+            scanLine: {
+              '0%': { top: '0%' },
+              '50%': { top: '95%' },
+              '100%': { top: '0%' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2E7D32;
+      --secondary: #66BB6A;
+      --accent: #F9A825;
+    }
+    
+    body {
+      background-color: #030d07;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(46, 125, 50, 0.25) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(66, 165, 245, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(249, 168, 37, 0.12) 0px, transparent 60%);
+      background-attachment: fixed;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(8, 24, 15, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(102, 187, 106, 0.2);
+      box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .glass-card-glow {
+      background: rgba(8, 28, 17, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(102, 187, 106, 0.4);
+      box-shadow: 0 0 25px -5px rgba(46, 125, 50, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(102, 187, 106, 0.6);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(102, 187, 106, 0.3);
+    }
+
+    /* Radar scan */
+    @keyframes radarSweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .radar-sweep-effect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform-origin: top left;
+      background: linear-gradient(135deg, rgba(102, 187, 106, 0.4) 0%, rgba(102, 187, 106, 0) 50%);
+      animation: radarSweep 4s linear infinite;
+      border-radius: 50%;
+    }
+
+    /* Floating Voice Assistant Orb */
+    .voice-orb {
+      background: radial-gradient(circle at 30% 30%, #a7f3d0, #10b981, #064e3b);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #020a05; }
+    ::-webkit-scrollbar-thumb { background: rgba(102, 187, 106, 0.4); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(102, 187, 106, 0.8); }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="selection:bg-emerald-500 selection:text-white min-h-screen overflow-x-hidden">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- SEED INTELLIGENCE & DATA ---
+    const MOCK_USER = {
+      name: 'Rameshwar Patel',
+      phone: '+91 98492 14320',
+      state: 'Telangana',
+      district: 'Warangal',
+      village: 'Dharmasagar',
+      farmName: 'Sri Venkateshwara Organic Farm',
+      farmSizeAcres: 4.8,
+      primaryCrop: 'Cotton & Paddy Intercrop',
+      agriStackId: 'IN-TS-WRG-2026-004128',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+    };
+
+    const ROBOT_COMPONENTS = [
+      { id: 'lidar', name: '360° Solid-State LiDAR', desc: '16-beam obstacle detection with 25m ranging and real-time point cloud SLAM.', specs: 'Range: 0.1–25m • Accuracy: ±2cm • Field of View: 360° Horizontal' },
+      { id: 'gps', name: 'Dual-Band RTK-GNSS GPS', desc: 'Centimeter-level precision navigation coupled with NavIC satellite constellation.', specs: 'Accuracy: 1.8cm RTK Fix • Multi-Constellation: NavIC + GPS + Galileo' },
+      { id: 'camera', name: 'AI Multispectral 4K Camera', desc: 'Dual RGB + NIR sensor for real-time edge YOLOv11 leaf pathology & weed detection.', specs: 'Resolution: 4K 60FPS • Multispectral NIR 850nm • Edge AI: 32 TOPS' },
+      { id: 'solar', name: 'Monocrystalline Solar PV Roof', desc: 'High-efficiency bifacial solar roof harvesting up to 180W continuous energy.', specs: 'Peak Power: 180W • Efficiency: 22.4% • MPPT Smart Charge Controller' },
+      { id: 'battery', name: 'LiFePO4 48V High-Density Battery', desc: 'Safe phosphate chemistry pack offering 8+ hours autonomous field runtime.', specs: 'Capacity: 48V 40Ah (1.92 kWh) • Cycles: 3,500+ • Fast Solar Charge: 2.5h' },
+      { id: 'arduino', name: 'Arduino Mega 2560 Control Board', desc: 'Hard real-time low-level PWM motor speed and optical encoder feedback control.', specs: 'Microcontroller: ATmega2560 • 54 Digital I/O • 16 Analog Inputs' },
+      { id: 'rpi', name: 'Raspberry Pi 5 + AI Accelerator', desc: 'ROS 2 (Robot Operating System) master node running SLAM and camera vision.', specs: 'CPU: Quad-core ARM Cortex-A76 • 8GB LPDDR4X • Hailo-8 AI NPU' },
+      { id: 'motors', name: '4x Brushless Geared Hub Motors', desc: 'Independent 4WD skid-steer with regenerative braking and high-torque mud climbing.', specs: 'Power: 4x 350W BLDC • Max Torque: 85 Nm • IP67 Waterproof Seals' },
+      { id: 'soil_sensor', name: 'Deployable Soil Moisture & EC Probe', desc: 'Motorized subsoil spear measuring root zone VWC, temperature, and conductivity.', specs: 'Depth: 5–30cm motorized stroke • VWC Accuracy: ±2% • EC Range: 0–20 dS/m' },
+      { id: 'imu', name: '9-DOF Industrial IMU', desc: 'Measures roll, pitch, and yaw on steep terrace bunds to prevent roll-over.', specs: 'Gyro: ±2000°/s • Accelerometer: ±16g • Built-in Kalman Sensor Fusion' }
+    ];
+
+    const DATASETS = [
+      { title: 'Soil Health Card (SHC) National Database', org: 'data.gov.in / Ministry of Agriculture', count: '2.4 Crore Records', format: 'REST API + CSV', badge: 'Verified' },
+      { title: 'IMD High-Resolution Gridded Rainfall (0.25°)', org: 'India Meteorological Department', count: '1901–2026 Daily Archive', format: 'NetCDF / JSON', badge: 'Live Feed' },
+      { title: 'Area & Production of Major Crops', org: 'Directorate of Economics & Statistics', count: '740+ Districts', format: 'GeoJSON / CSV', badge: 'Official' },
+      { title: 'Land Surface Temperature & NDVI Archive', org: 'ISRO Bhuvan & RISAT-1A', count: '10m Spatial Resolution', format: 'Cloud Optimized GeoTIFF', badge: 'Satellite' }
+    ];
+
+    const GOVERNMENT_STATES = [
+      { state: 'Telangana', farmers: '2.48 Lakh', robots: 1840, acreage: '4.85 Lakh Ha', soil: 82, model: 'Cotton Bollworm Vision (PJTSAU)', status: 'Optimal' },
+      { state: 'Punjab', farmers: '3.10 Lakh', robots: 2450, acreage: '7.90 Lakh Ha', soil: 76, model: 'Indo-Gangetic Wheat Yield (PAU)', status: 'Active' },
+      { state: 'Tamil Nadu', farmers: '1.95 Lakh', robots: 1420, acreage: '3.90 Lakh Ha', soil: 84, model: 'Cauvery Salinity Inversion (TNAU)', status: 'Optimal' },
+      { state: 'Maharashtra', farmers: '4.20 Lakh', robots: 2100, acreage: '9.20 Lakh Ha', soil: 79, model: 'Soybean Drought LSTM (MPKV)', status: 'High Alert' },
+      { state: 'Karnataka', farmers: '2.60 Lakh', robots: 1680, acreage: '5.40 Lakh Ha', soil: 81, model: 'Semi-Arid Millets AI (UASB)', status: 'Optimal' },
+      { state: 'Assam', farmers: '1.45 Lakh', robots: 890, acreage: '3.10 Lakh Ha', soil: 87, model: 'Flood Receding Sowing AI (AAU)', status: 'Optimal' }
+    ];
+
+    // --- MAIN APPLICATION COMPONENT ---
+    function App() {
+      const [experience, setExperience] = useState('landing'); // landing, robot3d, mobile_app, dashboard, satellite, soil, weather, disease, government, dpi, impact, datasets, contact
+      const [lang, setLang] = useState('en');
+      const [selectedComponent, setSelectedComponent] = useState(ROBOT_COMPONENTS[0]);
+      const [explodedView, setExplodedView] = useState(false);
+      const [robotRotating, setRobotRotating] = useState(true);
+      const [mobileScreen, setMobileScreen] = useState('home'); // home, scan, robot, weather, profile, schemes
+      const [diseaseScanState, setDiseaseScanState] = useState(null);
+      const [voiceListening, setVoiceListening] = useState(false);
+      const [voiceResponse, setVoiceResponse] = useState(null);
+      const [robotBattery, setRobotBattery] = useState(88);
+      const [robotSolar, setRobotSolar] = useState(145);
+      const [robotStatus, setRobotStatus] = useState('Autonomous Weeding');
+      const [isDarkMode, setIsDarkMode] = useState(true);
+      const [mobileFrameMode, setMobileFrameMode] = useState(true);
+
+      const canvasRef = useRef(null);
+
+      // 3D Canvas Robot Simulation
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationId;
+        let rotAngle = 0;
+
+        const render = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2;
+
+          // Draw cyber grid
+          ctx.strokeStyle = 'rgba(102, 187, 106, 0.15)';
+          ctx.lineWidth = 1;
+          for (let x = 0; x < canvas.width; x += 30) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+          }
+          for (let y = 0; y < canvas.height; y += 30) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+          }
+
+          ctx.save();
+          ctx.translate(cx, cy);
+
+          if (robotRotating) {
+            rotAngle += 0.015;
+          }
+
+          const scaleX = Math.cos(rotAngle);
+          const explodedOffset = explodedView ? 40 : 0;
+
+          // Wheels
+          ctx.fillStyle = '#1e293b';
+          ctx.strokeStyle = '#66BB6A';
+          ctx.lineWidth = 2;
+
+          // Left wheels
+          ctx.fillRect(-110 * scaleX - 15, -60 - explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+          ctx.strokeRect(-110 * scaleX - 15, -60 - explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+
+          ctx.fillRect(-110 * scaleX - 15, 20 + explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+          ctx.strokeRect(-110 * scaleX - 15, 20 + explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+
+          // Right wheels
+          ctx.fillRect(80 * scaleX, -60 - explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+          ctx.strokeRect(80 * scaleX, -60 - explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+
+          ctx.fillRect(80 * scaleX, 20 + explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+          ctx.strokeRect(80 * scaleX, 20 + explodedOffset, 30 * Math.abs(scaleX) + 5, 50);
+
+          // Chassis Main Body
+          ctx.fillStyle = '#061c10';
+          ctx.strokeStyle = '#2E7D32';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(-80 * scaleX, -70, 160 * scaleX, 140, 16);
+          ctx.fill();
+          ctx.stroke();
+
+          // Solar Roof Panel
+          ctx.fillStyle = '#0284c7';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(-65 * scaleX, -55 - explodedOffset, 130 * scaleX, 90, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          // Solar Grid Pattern
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 1;
+          for (let s = -40; s <= 40; s += 20) {
+            ctx.beginPath();
+            ctx.moveTo(s * scaleX, -55 - explodedOffset);
+            ctx.lineTo(s * scaleX, 35 - explodedOffset);
+            ctx.stroke();
+          }
+
+          // Top LiDAR Dome
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.arc(0, -75 - (explodedOffset * 1.5), 14 * Math.abs(scaleX) + 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#a7f3d0';
+          ctx.stroke();
+
+          // Front 4K Camera & Ultrasonic Eyes
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(-25 * scaleX, 65 + explodedOffset, 7, 0, Math.PI * 2);
+          ctx.arc(25 * scaleX, 65 + explodedOffset, 7, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Laser Weeder / Sprayer Bar
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(-95 * scaleX, 75 + (explodedOffset * 1.3), 190 * scaleX, 12);
+
+          ctx.restore();
+
+          animationId = requestAnimationFrame(render);
+        };
+
+        render();
+        return () => cancelAnimationFrame(animationId);
+      }, [robotRotating, explodedView]);
+
+      // Handle Voice AI
+      const handleVoiceClick = () => {
+        setVoiceListening(true);
+        if ('speechSynthesis' in window) {
+          setTimeout(() => {
+            setVoiceListening(false);
+            const answerTe = "నమస్కారం రమేశ్వర్ గారు! నేడు వాతావరణం అనుకూలంగా ఉంది. ఉదయం 10:30 గంటల వరకు మందు స్ప్రే చేయడానికి ఉత్తమ సమయం. ROV-BOT రోబోట్ 88% చార్జింగ్‌తో సిద్ధంగా ఉంది.";
+            const answerEn = "Namaskaram! Weather is optimal for bio-spraying today until 10:30 AM. ROV-BOT is ready with 88% solar charge.";
+            setVoiceResponse(lang === 'te' ? answerTe : answerEn);
+
+            const utterance = new SpeechSynthesisUtterance(lang === 'te' ? answerTe : answerEn);
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+          }, 1800);
+        }
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col text-slate-100 selection:bg-emerald-500 selection:text-white">
+          {/* TOP STICKY NAVIGATION BAR */}
+          <header className="sticky top-0 z-50 glass-card border-b border-white/10 px-4 lg:px-8 py-3.5">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+              {/* Brand Logo & Title */}
+              <div onClick={() => setExperience('landing')} className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 via-green-600 to-amber-500 p-0.5 shadow-lg shadow-emerald-900/50">
+                    <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center font-black text-xl text-emerald-400">
+                      🌾
+                    </div>
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-950 animate-pulse"></span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-heading font-extrabold text-xl lg:text-2xl text-white tracking-tight">
+                      ROV-BOT <span className="text-emerald-400">+ AgriNet AI</span>
+                    </span>
+                    <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                      DPI 2.0
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-medium hidden md:block">
+                    AI Powered Autonomous Precision Farming for Every Farmer
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation Experience Switcher */}
+              <nav className="hidden xl:flex items-center gap-1 bg-slate-900/90 p-1.5 rounded-2xl border border-white/10 text-xs font-semibold">
+                {[
+                  { id: 'landing', label: 'Home' },
+                  { id: 'robot3d', label: 'ROV-BOT 3D' },
+                  { id: 'mobile_app', label: 'Farmer Mobile App', badge: '20+ Screens' },
+                  { id: 'dashboard', label: 'Dashboard' },
+                  { id: 'satellite', label: 'Satellite NDVI' },
+                  { id: 'soil', label: 'Soil Health' },
+                  { id: 'weather', label: 'Weather AI' },
+                  { id: 'disease', label: 'Disease Scanner' },
+                  { id: 'government', label: 'Govt GIS' },
+                  { id: 'dpi', label: 'DPI Stack' },
+                  { id: 'datasets', label: 'Datasets' },
+                  { id: 'contact', label: 'Contact' }
+                ].map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setExperience(item.id)}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      experience === item.id
+                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/60 font-bold'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-emerald-950 text-emerald-300 rounded border border-emerald-500/40">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+
+              {/* Language & CTA */}
+              <div className="flex items-center gap-2.5">
+                <select
+                  value={lang}
+                  onChange={e => setLang(e.target.value)}
+                  className="bg-slate-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-200"
+                >
+                  <option value="en">English (EN)</option>
+                  <option value="te">తెలుగు (TE)</option>
+                  <option value="ta">தமிழ் (TA)</option>
+                  <option value="hi">हिन्दी (HI)</option>
+                  <option value="kn">ಕನ್ನಡ (KN)</option>
+                  <option value="mr">मराठी (MR)</option>
+                </select>
+
+                <button
+                  onClick={() => { setExperience('mobile_app'); window.confetti({ particleCount: 50 }); }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white font-bold text-xs shadow-lg shadow-emerald-950/50 transition-all flex items-center gap-1.5"
+                >
+                  <span>Launch App</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* EXPERIENCE ROUTER */}
+          <main className="flex-1">
+            {/* 1. HERO & LANDING PAGE */}
+            {experience === 'landing' && (
+              <div className="space-y-20 pb-24">
+                {/* Hero Section */}
+                <section className="relative min-h-[90vh] flex items-center justify-center text-center px-4 overflow-hidden pt-12">
+                  {/* Subtle Background Glows */}
+                  <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-emerald-600/15 rounded-full blur-[140px] pointer-events-none"></div>
+                  <div className="absolute top-10 left-10 w-96 h-96 bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+                  <div className="relative z-10 max-w-5xl mx-auto space-y-8">
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      <span>Hall of Community Hackathon 2.0 • Digital Public Infrastructure</span>
+                    </div>
+
+                    {/* Main Headline */}
+                    <h1 className="font-heading font-black text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight leading-[1.1]">
+                      India's First <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-300 to-amber-300">AI Powered Autonomous</span> Precision Farming Network
+                    </h1>
+
+                    {/* Subheadline */}
+                    <p className="max-w-3xl mx-auto text-slate-300 text-base sm:text-xl font-normal leading-relaxed">
+                      Unifying autonomous solar robots, ISRO satellite NDVI intelligence, lab-grade soil analytics, YOLO leaf disease diagnosis, and multilingual voice advisory into an interoperable Digital Public Good.
+                    </p>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                      <button
+                        onClick={() => setExperience('robot3d')}
+                        className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold text-sm sm:text-base shadow-2xl shadow-emerald-950/80 transition-all transform hover:-translate-y-1 flex items-center gap-2"
+                      >
+                        <span>Explore ROV-BOT 3D Robot</span>
+                        <span>🤖</span>
+                      </button>
+
+                      <button
+                        onClick={() => setExperience('mobile_app')}
+                        className="px-8 py-4 rounded-2xl glass-card hover:bg-slate-800 text-slate-200 border border-white/20 font-bold text-sm sm:text-base transition-all flex items-center gap-2"
+                      >
+                        <span>Open Farmer Mobile App</span>
+                        <span>📱</span>
+                      </button>
+                    </div>
+
+                    {/* Statistics Counter */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-12 max-w-4xl mx-auto">
+                      {[
+                        { num: '5+ AI Models', label: 'XGBoost, YOLOv11, U-Net, LSTM' },
+                        { num: '4-in-1 Robot', label: 'Spraying, Weeding, Seeding, Plough' },
+                        { num: '10+ Languages', label: 'Telugu, Tamil, Hindi, Kannada & more' },
+                        { num: '100% Digital', label: 'data.gov.in & AgriStack Standard' }
+                      ].map((stat, i) => (
+                        <div key={i} className="glass-card rounded-2xl p-5 border border-white/10 text-center">
+                          <p className="font-numbers font-black text-2xl lg:text-3xl text-emerald-400">{stat.num}</p>
+                          <p className="text-xs text-slate-400 mt-1">{stat.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Alternating Feature Cards Grid */}
+                <section className="max-w-7xl mx-auto px-4 space-y-12">
+                  <div className="text-center space-y-2">
+                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Next-Gen Architecture</span>
+                    <h2 className="font-heading font-black text-3xl sm:text-4xl text-white">
+                      Comprehensive Agricultural Intelligence Suite
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                      { icon: '🤖', title: 'ROV-BOT Swarm Robotics', desc: 'Solar-powered 4WD robot with LiDAR SLAM and interchangeable precision farming toolbars.', action: () => setExperience('robot3d') },
+                      { icon: '🛰️', title: 'Satellite Earth Engine', desc: 'Real-time 10m NDVI canopy vigor, water stress index, and temporal vegetative tracking.', action: () => setExperience('satellite') },
+                      { icon: '🧪', title: 'Soil Health Intelligence', desc: 'Digital Soil Health Card (SHC) with NPK balance, pH dials, and automatic compost dosage.', action: () => setExperience('soil') },
+                      { icon: '🔬', title: 'Crop Disease AI Vision', desc: 'YOLOv11 leaf scanner for Rice, Cotton, Tomato, Wheat with organic bio-control prescriptions.', action: () => setExperience('disease') },
+                      { icon: '⛅', title: 'Micro-Climate Weather', desc: '7-day hyper-local agricultural weather with optimal spraying and irrigation windows.', action: () => setExperience('weather') },
+                      { icon: '🎙️', title: 'Kisan Vani Voice AI', desc: 'Multilingual conversational assistant in 7 Indian languages with voice synthesis.', action: () => setExperience('mobile_app') },
+                      { icon: '🏛️', title: 'Government GIS Hub', desc: 'Macro dashboard for District Collectors monitoring state acreage, drought, and yield.', action: () => setExperience('government') },
+                      { icon: '⚡', title: 'DPI State Registry', desc: 'Federated machine learning exchange interconnecting PJTSAU, PAU, TNAU, and UASB.', action: () => setExperience('dpi') }
+                    ].map((feat, i) => (
+                      <div
+                        key={i}
+                        onClick={feat.action}
+                        className="glass-card glass-card-hover rounded-3xl p-6 border border-white/10 cursor-pointer space-y-4"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl">
+                          {feat.icon}
+                        </div>
+                        <h3 className="font-heading font-bold text-lg text-white">{feat.title}</h3>
+                        <p className="text-xs text-slate-300 leading-relaxed">{feat.desc}</p>
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                          Explore Module →
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* 6-Step How It Works Timeline */}
+                <section className="max-w-7xl mx-auto px-4 space-y-12">
+                  <div className="text-center space-y-2">
+                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Autonomous Workflow</span>
+                    <h2 className="font-heading font-black text-3xl sm:text-4xl text-white">How AgriNet Works in 6 Steps</h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[
+                      { step: '01', title: 'Farmer Selects Field', desc: 'Geofenced polygon drawn in seconds with automated acreage calculation.' },
+                      { step: '02', title: 'AI Fetches data.gov.in', desc: 'National soil and weather datasets integrated via open government APIs.' },
+                      { step: '03', title: 'Satellite Checks NDVI', desc: 'ISRO RISAT & Sentinel-2 composite evaluates canopy chlorophyll vigor.' },
+                      { step: '04', title: 'Weather Prediction', desc: 'IMD grid determines safe spraying windows and evapotranspiration rates.' },
+                      { step: '05', title: 'Soil & Disease Analysis', desc: 'Subsoil NPK probes & leaf vision identify deficiencies and foliar blights.' },
+                      { step: '06', title: 'ROV-BOT Executes Swath', desc: 'Autonomous robot executes laser weeding or bio-spraying with 0 diesel fuel.' }
+                    ].map((step, i) => (
+                      <div key={i} className="glass-card rounded-3xl p-6 border border-white/10 relative overflow-hidden">
+                        <span className="font-numbers font-black text-4xl text-emerald-500/20 absolute top-4 right-4">{step.step}</span>
+                        <h4 className="font-heading font-bold text-base text-white mt-4">{step.title}</h4>
+                        <p className="text-xs text-slate-300 mt-2 leading-relaxed">{step.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {/* 2. INTERACTIVE 3D ROV-BOT ROBOT SECTION */}
+            {experience === 'robot3d' && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-6 lg:p-8">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                        Hardware & Mechatronics Cockpit
+                      </span>
+                      <h1 className="font-heading font-black text-3xl lg:text-4xl text-white mt-2">
+                        ROV-BOT Alpha Mark IV • Interactive Digital Twin
+                      </h1>
+                      <p className="text-slate-300 text-sm mt-1 max-w-2xl">
+                        Explore the mechatronics assembly: click components on the right to inspect real-time specs, toggle exploded view, and control rotation.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2.5">
+                      <button
+                        onClick={() => setExplodedView(!explodedView)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          explodedView ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-300 border border-white/10'
+                        }`}
+                      >
+                        {explodedView ? 'Collapse Assembly' : 'Exploded View'}
+                      </button>
+
+                      <button
+                        onClick={() => setRobotRotating(!robotRotating)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          robotRotating ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 border border-white/10'
+                        }`}
+                      >
+                        {robotRotating ? 'Pause Rotation' : 'Auto Rotate'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left 3D Canvas Viewport (7 Cols) */}
+                  <div className="lg:col-span-7 glass-card rounded-3xl p-6 border border-white/10 space-y-4">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        Real-time Chassis & Tool Toolbar
+                      </span>
+                      <span className="font-mono text-cyan-400 bg-slate-900 px-2.5 py-1 rounded-lg">4WD BLDC Hub Drive</span>
+                    </div>
+
+                    <div className="relative w-full h-96 rounded-2xl bg-slate-950 border border-emerald-500/20 flex items-center justify-center overflow-hidden">
+                      <canvas ref={canvasRef} width={500} height={380} className="w-full h-full object-contain" />
+                      
+                      {/* Interactive Component Overlay Hotspot Chips */}
+                      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] bg-slate-900/90 backdrop-blur-md p-2 rounded-xl border border-white/10 font-mono">
+                        <span className="text-slate-400">Active Spec: <strong className="text-emerald-400">{selectedComponent.name}</strong></span>
+                        <span className="text-cyan-400">{robotBattery}% LiFePO4 • +{robotSolar}W PV</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Hotspots & Specification Explorer (5 Cols) */}
+                  <div className="lg:col-span-5 space-y-4">
+                    <div className="glass-card-glow rounded-3xl p-6 border border-emerald-500/40 space-y-4">
+                      <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider">Component Specification</span>
+                      <h3 className="font-heading font-black text-2xl text-white">{selectedComponent.name}</h3>
+                      <p className="text-xs text-slate-300 leading-relaxed">{selectedComponent.desc}</p>
+
+                      <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/10 text-xs font-mono text-cyan-300">
+                        {selectedComponent.specs}
+                      </div>
+                    </div>
+
+                    <div className="glass-card rounded-3xl p-5 border border-white/10 space-y-2">
+                      <span className="text-xs font-bold uppercase text-slate-400">Select Component Hotspot:</span>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {ROBOT_COMPONENTS.map(comp => (
+                          <button
+                            key={comp.id}
+                            onClick={() => setSelectedComponent(comp)}
+                            className={`p-2.5 rounded-xl border text-left truncate transition-all ${
+                              selectedComponent.id === comp.id
+                                ? 'bg-emerald-600 text-white font-bold border-emerald-400'
+                                : 'bg-slate-900/60 border-white/5 text-slate-300 hover:bg-slate-800'
+                            }`}
+                          >
+                            {comp.name.split(' ')[0]} {comp.name.split(' ')[1] || ''}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. COMPLETE FARMER MOBILE APP (20+ SCREENS) */}
+            {experience === 'mobile_app' && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      Farmer Mobile Interface (Android / PWA)
+                    </span>
+                    <h1 className="font-heading font-black text-3xl text-white mt-2">
+                      AgriNet Farmer App • 20+ Screen Flows
+                    </h1>
+                    <p className="text-slate-300 text-sm mt-1 max-w-2xl">
+                      Ultra-simple Material Design 3 app tailored for elderly & smallholder farmers with large touch targets, voice assistant orb, and offline caching.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setMobileFrameMode(!mobileFrameMode)}
+                      className="px-4 py-2 rounded-xl bg-slate-800 border border-white/10 text-xs font-bold text-slate-200"
+                    >
+                      {mobileFrameMode ? 'Full Width View' : 'Phone Bezel Frame'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile UI Container */}
+                <div className="flex justify-center">
+                  <div className={`w-full ${mobileFrameMode ? 'max-w-[420px] rounded-[48px] p-4 bg-slate-950 border-4 border-slate-700 shadow-2xl' : 'glass-card rounded-3xl p-6'}`}>
+                    {/* Phone Screen Viewport */}
+                    <div className="rounded-[36px] bg-slate-900 border border-white/10 overflow-hidden flex flex-col min-h-[720px] text-slate-100 relative">
+                      {/* Mobile Status Bar */}
+                      <div className="px-6 py-3 flex items-center justify-between text-xs text-slate-400 border-b border-white/5 bg-slate-950/60">
+                        <span className="font-mono font-bold">10:30</span>
+                        <div className="flex items-center gap-2">
+                          <span>5G</span>
+                          <span>🔋 88%</span>
+                        </div>
+                      </div>
+
+                      {/* Mobile Header */}
+                      <div className="p-4 bg-gradient-to-r from-emerald-900/80 to-slate-900 border-b border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <img src={MOCK_USER.avatarUrl} alt="User" className="w-9 h-9 rounded-full object-cover border border-emerald-400" />
+                          <div>
+                            <span className="text-[10px] text-emerald-400 font-bold uppercase block">Farmer Passport</span>
+                            <h4 className="text-sm font-bold text-white">{MOCK_USER.name}</h4>
+                          </div>
+                        </div>
+
+                        <span className="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-emerald-300 border border-emerald-500/30">
+                          {MOCK_USER.district}
+                        </span>
+                      </div>
+
+                      {/* Screen Content Body */}
+                      <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+                        {/* SCREEN: HOME */}
+                        {mobileScreen === 'home' && (
+                          <div className="space-y-4">
+                            {/* Weather Alert Card */}
+                            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500/30 space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-emerald-300">🌤️ Today: 29.4°C (Optimal Spray)</span>
+                                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">07:00–10:30 AM</span>
+                              </div>
+                              <p className="text-[11px] text-slate-300">Wind calm at 11 km/h. Safe to deploy ROV-BOT bio-sprayer in Quadrant B.</p>
+                            </div>
+
+                            {/* Gauges Triad */}
+                            <div className="grid grid-cols-3 gap-2 text-center">
+                              <div className="p-3 rounded-2xl bg-slate-950/70 border border-white/5">
+                                <span className="text-[10px] text-slate-400 block">Soil Health</span>
+                                <span className="text-lg font-black text-emerald-400 font-numbers">84/100</span>
+                              </div>
+                              <div className="p-3 rounded-2xl bg-slate-950/70 border border-white/5">
+                                <span className="text-[10px] text-slate-400 block">NDVI Vigor</span>
+                                <span className="text-lg font-black text-cyan-400 font-numbers">0.74</span>
+                              </div>
+                              <div className="p-3 rounded-2xl bg-slate-950/70 border border-white/5">
+                                <span className="text-[10px] text-slate-400 block">ROV Battery</span>
+                                <span className="text-lg font-black text-amber-400 font-numbers">88%</span>
+                              </div>
+                            </div>
+
+                            {/* Big Action Buttons */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                onClick={() => setMobileScreen('scan')}
+                                className="p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-center shadow-lg space-y-1"
+                              >
+                                <span className="text-2xl block">🔬</span>
+                                <span>Scan Leaf AI</span>
+                              </button>
+
+                              <button
+                                onClick={() => setMobileScreen('robot')}
+                                className="p-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-bold text-center space-y-1"
+                              >
+                                <span className="text-2xl block">🤖</span>
+                                <span>ROV-BOT Control</span>
+                              </button>
+                            </div>
+
+                            {/* Government DBT Subsidy Chip */}
+                            <div onClick={() => setMobileScreen('schemes')} className="p-3 rounded-2xl bg-amber-950/30 border border-amber-500/30 flex items-center justify-between cursor-pointer">
+                              <div className="flex items-center gap-2">
+                                <span className="text-base">💰</span>
+                                <div>
+                                  <span className="font-bold text-amber-300 block">₹4,000 DBT Subsidy Credited</span>
+                                  <span className="text-[10px] text-slate-400">PM-KISAN Bio-Input Scheme</span>
+                                </div>
+                              </div>
+                              <span className="text-xs text-amber-400 font-bold">View →</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SCREEN: SCAN */}
+                        {mobileScreen === 'scan' && (
+                          <div className="space-y-4 animate-fadeIn">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-bold text-white text-sm">🔬 AI Leaf Pathology Scanner</h4>
+                              <span className="text-[10px] text-emerald-400 font-mono">YOLOv11 Model</span>
+                            </div>
+
+                            <div className="relative w-full h-52 rounded-2xl bg-slate-950 border-2 border-dashed border-emerald-500/40 overflow-hidden flex items-center justify-center text-center p-3">
+                              <div className="space-y-2">
+                                <span className="text-3xl block">🍃</span>
+                                <span className="font-bold text-white">Camera Viewfinder Active</span>
+                                <p className="text-[10px] text-slate-400">Point at Rice, Cotton, Tomato, or Wheat leaf</p>
+                              </div>
+                              {/* Scanning Green Laser Animation */}
+                              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-emerald-400 to-green-500 shadow-glow-green animate-scan"></div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              {['Tomato Blight', 'Rice Blast', 'Cotton Virus', 'Wheat Rust'].map((crop, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    setDiseaseScanState(crop);
+                                    window.confetti({ particleCount: 30 });
+                                  }}
+                                  className="p-2.5 rounded-xl bg-slate-800 text-white font-bold text-center border border-white/5 hover:border-emerald-500"
+                                >
+                                  Test {crop}
+                                </button>
+                              ))}
+                            </div>
+
+                            {diseaseScanState && (
+                              <div className="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-500/40 space-y-1.5 animate-fadeIn">
+                                <div className="flex justify-between">
+                                  <span className="font-bold text-rose-300">{diseaseScanState} (97.4%)</span>
+                                  <span className="text-[10px] text-amber-400 font-bold">Moderate Severity</span>
+                                </div>
+                                <p className="text-[11px] text-slate-200">
+                                  <strong>Organic:</strong> Foliar spray Trichoderma harzianum @ 5g/liter.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* SCREEN: ROBOT CONTROLLER */}
+                        {mobileScreen === 'robot' && (
+                          <div className="space-y-4 animate-fadeIn">
+                            <h4 className="font-bold text-white text-sm">🤖 Mobile ROV-BOT Cockpit</h4>
+                            <div className="p-4 rounded-2xl bg-slate-950 border border-white/5 space-y-3">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Status:</span>
+                                <span className="font-bold text-emerald-400">{robotStatus}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Battery:</span>
+                                <span className="font-bold text-amber-400">{robotBattery}% (+{robotSolar}W)</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Speed:</span>
+                                <span className="font-bold text-white font-mono">3.4 km/h</span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <button onClick={() => setRobotStatus('Autonomous Weeding')} className="p-3 bg-emerald-600 text-white rounded-xl font-bold">▶ Start</button>
+                              <button onClick={() => setRobotStatus('Paused')} className="p-3 bg-amber-600 text-white rounded-xl font-bold">⏸ Pause</button>
+                              <button onClick={() => setRobotStatus('Returning Home')} className="p-3 bg-slate-800 text-white rounded-xl font-bold">🏠 Home</button>
+                              <button onClick={() => setRobotStatus('Emergency Halted')} className="p-3 bg-rose-600 text-white rounded-xl font-bold">🚨 E-Stop</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SCREEN: SCHEMES */}
+                        {mobileScreen === 'schemes' && (
+                          <div className="space-y-3 animate-fadeIn">
+                            <h4 className="font-bold text-white text-sm">🏛️ Government DBT Schemes</h4>
+                            <div className="p-3 rounded-2xl bg-slate-950 border border-white/5 space-y-1">
+                              <span className="font-bold text-emerald-400 block">PM-KISAN Organic Compost DBT</span>
+                              <p className="text-[11px] text-slate-300">₹4,000 subsidy credited to SBI A/c ending in 8891.</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-slate-950 border border-white/5 space-y-1">
+                              <span className="font-bold text-cyan-400 block">Robot Solar Drone Subsidy (40%)</span>
+                              <p className="text-[11px] text-slate-300">Eligible for ₹14,500 discount on laser weeder attachments.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Voice Orb Floating Button inside Mobile Screen */}
+                      <div className="absolute bottom-16 right-4 z-20">
+                        <button
+                          onClick={handleVoiceClick}
+                          className={`w-12 h-12 rounded-full voice-orb flex items-center justify-center text-xl shadow-2xl transition-transform active:scale-90 ${
+                            voiceListening ? 'animate-bounce' : ''
+                          }`}
+                          title="Tap to speak with Kisan Vani AI"
+                        >
+                          🎙️
+                        </button>
+                      </div>
+
+                      {/* Voice Popup Response */}
+                      {voiceResponse && (
+                        <div className="p-3 bg-emerald-950 border-t border-emerald-500/40 text-[11px] text-emerald-200">
+                          <strong>Kisan Vani AI:</strong> {voiceResponse}
+                        </div>
+                      )}
+
+                      {/* Bottom Navigation Bar */}
+                      <div className="p-2 bg-slate-950 border-t border-white/10 grid grid-cols-4 gap-1 text-center text-[10px]">
+                        {[
+                          { id: 'home', icon: '🌾', label: 'Home' },
+                          { id: 'scan', icon: '🔬', label: 'Scan' },
+                          { id: 'robot', icon: '🤖', label: 'Robot' },
+                          { id: 'schemes', icon: '🏛️', label: 'Schemes' }
+                        ].map(nav => (
+                          <button
+                            key={nav.id}
+                            onClick={() => setMobileScreen(nav.id)}
+                            className={`p-2 rounded-xl transition-all ${
+                              mobileScreen === nav.id
+                                ? 'bg-emerald-600/30 text-emerald-400 font-bold'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-base block">{nav.icon}</span>
+                            <span>{nav.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. SATELLITE INTELLIGENCE */}
+            {experience === 'satellite' && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-6 lg:p-8">
+                  <h1 className="font-heading font-black text-3xl text-white">
+                    🛰️ Satellite Earth Engine & NDVI Chlorophyll Heatmap
+                  </h1>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Multi-spectral remote sensing composite from ISRO RISAT-1A & Sentinel-2 at 10m spatial resolution.
+                  </p>
+                </div>
+
+                <div className="glass-card rounded-3xl p-6 border border-white/10 space-y-4">
+                  <div className="relative w-full h-80 rounded-2xl bg-slate-950 border border-emerald-500/30 overflow-hidden flex items-center justify-center">
+                    <img
+                      src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&auto=format&fit=crop&q=80"
+                      alt="Satellite Map"
+                      className="w-full h-full object-cover brightness-110 saturate-150"
+                    />
+                    <div className="absolute inset-0 bg-emerald-900/30"></div>
+
+                    {/* Polygon Overlay */}
+                    <div className="absolute top-8 left-12 right-12 bottom-8 border-2 border-emerald-400 bg-emerald-500/20 rounded-2xl flex items-center justify-center font-mono font-bold text-white text-xs">
+                      Plot 4.8 Ac (Average NDVI: 0.74 • High Canopy Chlorophyll)
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                    <div className="p-3 bg-slate-900 rounded-xl"><span className="text-slate-400">NDVI Vigor</span><p className="font-bold text-emerald-400 text-lg">0.74</p></div>
+                    <div className="p-3 bg-slate-900 rounded-xl"><span className="text-slate-400">NDWI Water</span><p className="font-bold text-cyan-400 text-lg">0.32 (Optimal)</p></div>
+                    <div className="p-3 bg-slate-900 rounded-xl"><span className="text-slate-400">Surface Temp</span><p className="font-bold text-amber-400 text-lg">28.2°C</p></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. SOIL HEALTH INTELLIGENCE */}
+            {experience === 'soil' && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-6 lg:p-8">
+                  <h1 className="font-heading font-black text-3xl text-white">
+                    🧪 Soil Health Card (SHC) & Subsoil EC Intelligence
+                  </h1>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Laboratory certified macronutrient profile (NPK), pH, and organic carbon with automated compost dosing.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                  <div className="glass-card rounded-2xl p-5"><span className="text-xs text-slate-400">Soil pH</span><p className="text-3xl font-black text-amber-400 font-numbers mt-1">6.8</p><span className="text-[10px] text-emerald-400">Neutral</span></div>
+                  <div className="glass-card rounded-2xl p-5"><span className="text-xs text-slate-400">Moisture</span><p className="text-3xl font-black text-cyan-400 font-numbers mt-1">68%</p><span className="text-[10px] text-cyan-300">Optimal</span></div>
+                  <div className="glass-card rounded-2xl p-5"><span className="text-xs text-slate-400">Nitrogen</span><p className="text-3xl font-black text-emerald-400 font-numbers mt-1">242</p><span className="text-[10px] text-slate-400">kg/ha</span></div>
+                  <div className="glass-card rounded-2xl p-5"><span className="text-xs text-slate-400">Org Carbon</span><p className="text-3xl font-black text-purple-400 font-numbers mt-1">0.72%</p><span className="text-[10px] text-slate-400">Medium</span></div>
+                </div>
+              </div>
+            )}
+
+            {/* 6. GOVERNMENT GIS */}
+            {experience === 'government' && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-6 lg:p-8">
+                  <h1 className="font-heading font-black text-3xl text-white">
+                    🏛️ Government GIS & State Macro Registry
+                  </h1>
+                  <p className="text-slate-300 text-sm mt-1">
+                    State-by-state telemetry federating 8 state agricultural directorates and 15,000+ autonomous farming robots.
+                  </p>
+                </div>
+
+                <div className="glass-card rounded-3xl p-6 overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 text-slate-400">
+                        <th className="pb-3">State Node</th>
+                        <th className="pb-3">Registered Farmers</th>
+                        <th className="pb-3">Active Robots</th>
+                        <th className="pb-3">Acreage</th>
+                        <th className="pb-3">Soil Index</th>
+                        <th className="pb-3">Federated Model</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {GOVERNMENT_STATES.map((s, idx) => (
+                        <tr key={idx} className="hover:bg-white/5">
+                          <td className="py-3.5 font-bold text-white">{s.state}</td>
+                          <td className="py-3.5 text-slate-300 font-mono">{s.farmers}</td>
+                          <td className="py-3.5 text-cyan-400 font-bold font-mono">{s.robots}</td>
+                          <td className="py-3.5 text-slate-300 font-mono">{s.acreage}</td>
+                          <td className="py-3.5 text-emerald-400 font-bold">{s.soil}/100</td>
+                          <td className="py-3.5 text-slate-300 font-mono">{s.model}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* 7. DATASETS (data.gov.in) */}
+            {experience === 'datasets' && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-6 lg:p-8">
+                  <h1 className="font-heading font-black text-3xl text-white">
+                    📊 Open Government Agriculture Datasets (data.gov.in)
+                  </h1>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Verifiable public datasets integrated into the AgriNet Digital Public Infrastructure architecture.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {DATASETS.map((ds, idx) => (
+                    <div key={idx} className="glass-card rounded-3xl p-6 border border-white/10 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase font-mono">
+                          {ds.format}
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">{ds.count}</span>
+                      </div>
+                      <h3 className="font-heading font-bold text-base text-white">{ds.title}</h3>
+                      <p className="text-xs text-slate-300">Source: <strong className="text-white">{ds.org}</strong></p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 8. CONTACT PAGE */}
+            {experience === 'contact' && (
+              <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 animate-fadeIn">
+                <div className="glass-card-glow rounded-3xl p-8 text-center space-y-3">
+                  <span className="text-xs font-bold uppercase text-emerald-400 tracking-widest">Hall of Community Hackathon 2.0</span>
+                  <h1 className="font-heading font-black text-3xl text-white">Connect with Team KINGPIN</h1>
+                  <p className="text-xs text-slate-300">Building Digital Public Infrastructure for India's Small & Marginal Farmers.</p>
+                </div>
+
+                <div className="glass-card rounded-3xl p-8 border border-white/10 space-y-4 text-xs">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-slate-400 block mb-1">Your Name</label>
+                      <input className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white" defaultValue="Rameshwar Patel" />
+                    </div>
+                    <div>
+                      <label className="text-slate-400 block mb-1">State / District</label>
+                      <input className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white" defaultValue="Warangal, Telangana" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-400 block mb-1">Message / Collaboration Proposal</label>
+                    <textarea rows={4} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white" defaultValue="We want to deploy 10 ROV-BOT swarm units in our Farmer Producer Organization (FPO) cluster..." />
+                  </div>
+
+                  <button
+                    onClick={() => window.confetti({ particleCount: 50 })}
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold text-sm shadow-lg"
+                  >
+                    Submit Inquiry to Team KINGPIN
+                  </button>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* FOOTER */}
+          <footer className="border-t border-white/10 glass-card py-8 px-4 text-center text-xs text-slate-500 no-print">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span className="font-bold text-slate-300">ROV-BOT + AgriNet AI</span>
+                <span>•</span>
+                <span>Hall of Community Hackathon 2.0</span>
+                <span>•</span>
+                <span className="text-emerald-400 font-bold">Team KINGPIN</span>
+              </div>
+
+              <div className="text-[11px] text-slate-400">
+                Inspired by India's Digital Public Infrastructure (DPI) & AgriStack Vision
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
